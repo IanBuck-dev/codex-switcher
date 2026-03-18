@@ -17,6 +17,33 @@ export function useAccounts() {
 
   useEffect(() => {
     accountsRef.current = accounts;
+
+    const activeAccount = accounts.find((a) => a.is_active);
+    if (activeAccount) {
+      let primaryLeft: number | null = null;
+      let secondaryLeft: number | null = null;
+
+      if (activeAccount.usage) {
+        if (activeAccount.usage.primary_used_percent !== null) {
+          primaryLeft = Math.max(0, 100 - activeAccount.usage.primary_used_percent);
+        }
+        if (activeAccount.usage.secondary_used_percent !== null) {
+          secondaryLeft = Math.max(0, 100 - activeAccount.usage.secondary_used_percent);
+        }
+      }
+
+      invoke('update_tray_info', {
+        activeName: activeAccount.name,
+        primaryLeft,
+        secondaryLeft,
+      }).catch(console.error);
+    } else {
+      invoke('update_tray_info', {
+        activeName: null,
+        primaryLeft: null,
+        secondaryLeft: null,
+      }).catch(console.error);
+    }
   }, [accounts]);
 
   const buildUsageError = useCallback(
